@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Workout">
+<title>Aesthetics Workout Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0A0A0F;
+    --card: #111118;
+    --card-inner: #0D0D14;
+    --card-deep: #0A0A12;
+    --border: #1A1A24;
+    --border-light: #2A2A34;
+    --text: #E8E8ED;
+    --text-dim: #888;
+    --text-muted: #666;
+    --text-faint: #555;
+    --text-ghost: #444;
+    --text-hidden: #333;
+    --accent: #FF6B35;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', 'Helvetica Neue', -apple-system, sans-serif;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) 0;
+  }
+
+  .ambient {
+    position: fixed; top: -30%; right: -20%; width: 600px; height: 600px;
+    border-radius: 50%; pointer-events: none; z-index: 0;
+    transition: background 0.6s ease;
+  }
+  .ambient2 {
+    position: fixed; bottom: -20%; left: -15%; width: 400px; height: 400px;
+    border-radius: 50%; pointer-events: none; z-index: 0;
+    transition: background 0.6s ease;
+  }
+
+  .container {
+    position: relative; z-index: 1;
+    max-width: 480px; margin: 0 auto; padding: 24px 16px;
+  }
+
+  .label {
+    font-size: 13px; letter-spacing: 3px; text-transform: uppercase;
+    font-weight: 600; margin-bottom: 6px; font-family: 'Space Mono', monospace;
+  }
+  h1 { font-size: 28px; font-weight: 700; line-height: 1.2; color: #fff; }
+  .subtitle { font-size: 13px; color: var(--text-muted); margin-top: 6px; }
+
+  .split-bar {
+    background: var(--card); border-radius: 14px; padding: 14px 16px;
+    margin-bottom: 20px; border: 1px solid var(--border);
+    display: flex; flex-wrap: wrap; gap: 6px 10px; justify-content: center;
+  }
+  .split-tag {
+    font-size: 10px; font-weight: 600; font-family: 'Space Mono', monospace;
+    letter-spacing: 0.5px; padding: 3px 8px; border-radius: 6px;
+  }
+
+  .day-scroll {
+    display: flex; gap: 6px; margin-bottom: 20px; overflow-x: auto;
+    padding-bottom: 4px; scrollbar-width: none; -ms-overflow-style: none;
+  }
+  .day-scroll::-webkit-scrollbar { display: none; }
+
+  .day-btn {
+    flex: 0 0 auto; padding: 10px 14px; border-radius: 14px;
+    font-weight: 600; font-size: 12px; cursor: pointer;
+    transition: all 0.25s ease; font-family: 'DM Sans', sans-serif;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 3px; min-width: 52px; border: 2px solid var(--border);
+    background: var(--card); color: var(--text-faint);
+  }
+  .day-btn.active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); color: var(--accent); }
+  .day-btn .emoji { font-size: 16px; }
+
+  .day-card {
+    background: var(--card); border-radius: 20px; padding: 24px 20px;
+    margin-bottom: 16px; border: 1px solid color-mix(in srgb, var(--accent) 15%, transparent);
+  }
+
+  .day-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .day-tag {
+    display: inline-block; padding: 4px 12px; border-radius: 20px;
+    font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; margin-bottom: 8px;
+    font-family: 'Space Mono', monospace;
+  }
+  .day-title { font-size: 22px; font-weight: 700; color: #fff; }
+  .day-focus { font-size: 13px; color: #777; margin-top: 4px; }
+  .day-count { font-size: 28px; font-weight: 700; font-family: 'Space Mono', monospace; text-align: right; }
+  .day-count-label { font-size: 11px; color: var(--text-faint); }
+
+  .aesthetic-note {
+    padding: 10px 14px; border-radius: 10px; margin-bottom: 16px;
+    font-size: 12px; line-height: 1.5; font-style: italic;
+  }
+
+  .progress-bar { width: 100%; height: 4px; background: var(--border); border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+
+  .exercise-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .exercise {
+    border-radius: 14px; background: var(--card-inner);
+    border: 1px solid var(--border); transition: all 0.2s ease; overflow: hidden;
+  }
+  .exercise.done { opacity: 0.65; }
+  .exercise.expanded { border-color: color-mix(in srgb, var(--accent) 30%, transparent); }
+
+  .exercise-row {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 14px 16px; cursor: pointer;
+  }
+
+  .checkbox {
+    width: 22px; height: 22px; border-radius: 7px; flex-shrink: 0;
+    border: 2px solid #333; background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s ease; margin-top: 1px;
+  }
+  .checkbox.checked { border-color: var(--accent); background: var(--accent); }
+
+  .exercise-info { flex: 1; min-width: 0; }
+  .exercise-name {
+    font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px;
+  }
+  .exercise.done .exercise-name { color: var(--text-dim); text-decoration: line-through; }
+
+  .exercise-meta { display: flex; gap: 12px; font-size: 12px; color: var(--text-muted); flex-wrap: wrap; }
+  .exercise-meta .val { font-weight: 600; }
+  .exercise-tip { font-size: 11px; color: var(--text-faint); margin-top: 4px; font-style: italic; }
+
+  .how-btn {
+    flex-shrink: 0; padding: 6px 10px; border-radius: 8px;
+    border: 1px solid var(--border-light); background: #15151F;
+    color: var(--text-dim); font-size: 11px; font-weight: 600;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s ease; margin-top: 1px;
+  }
+  .how-btn.active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); }
+
+  .expand-panel {
+    padding: 0 16px 16px; border-top: 1px solid color-mix(in srgb, var(--accent) 8%, transparent);
+  }
+  .expand-inner {
+    margin-top: 12px; padding: 14px; background: var(--card-deep);
+    border-radius: 12px; border: 1px solid color-mix(in srgb, var(--accent) 12%, transparent);
+  }
+  .expand-label {
+    font-size: 12px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; font-family: 'Space Mono', monospace;
+    margin-bottom: 8px;
+  }
+  .expand-text { font-size: 13px; line-height: 1.65; color: #BBB; margin-bottom: 14px; }
+
+  .yt-btn {
+    width: 100%; padding: 12px 16px; border-radius: 10px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: all 0.2s ease;
+  }
+
+  .freq-card {
+    background: var(--card); border-radius: 16px; padding: 16px 18px;
+    margin-bottom: 16px; border: 1px solid var(--border);
+  }
+  .freq-title {
+    font-size: 12px; color: var(--text-dim); font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    font-family: 'Space Mono', monospace; margin-bottom: 12px;
+  }
+  .freq-row { margin-bottom: 10px; }
+  .freq-row:last-child { margin-bottom: 0; }
+  .freq-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .freq-muscle { font-size: 12px; color: #BBB; font-weight: 500; }
+  .freq-detail { font-size: 11px; color: var(--text-muted); }
+  .freq-bar { width: 100%; height: 3px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .freq-fill { height: 100%; border-radius: 3px; opacity: 0.7; }
+
+  .tips-btn {
+    width: 100%; padding: 16px; border-radius: 16px;
+    border: 1px solid var(--border); background: var(--card);
+    color: var(--text); font-size: 14px; font-weight: 600;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px;
+  }
+  .tips-arrow { transition: transform 0.3s ease; font-size: 18px; }
+  .tips-arrow.open { transform: rotate(180deg); }
+
+  .tips-panel {
+    background: var(--card); border-radius: 16px; padding: 16px;
+    margin-bottom: 16px; border: 1px solid var(--border);
+    display: none; flex-direction: column; gap: 10px;
+  }
+  .tips-panel.open { display: flex; }
+  .tip {
+    font-size: 13px; color: #999; line-height: 1.5;
+    padding: 10px 12px; background: var(--card-inner);
+    border-radius: 10px; border-left: 3px solid var(--accent);
+  }
+
+  .footer {
+    text-align: center; padding: 16px 0 32px;
+    font-size: 12px; color: var(--text-hidden);
+  }
+  .footer-sub { color: var(--text-ghost); font-size: 11px; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .day-card { animation: fadeIn 0.3s ease; }
+</style>
+</head>
+<body>
+
+<div class="ambient" id="ambient1"></div>
+<div class="ambient2" id="ambient2"></div>
+
+<div class="container" id="app"></div>
+
+<script>
+const DAYS = [
+  {
+    day: "Monday", label: "Chest & Triceps", focus: "Upper, Mid & Lower Chest + Triceps",
+    emoji: "🔥", color: "#FF6B35", tag: "Chest+Tri",
+    aesthetic: "Builds a full, defined chest — the centerpiece of an aesthetic upper body",
+    exercises: [
+      { name: "Incline Dumbbell Press", sets: 4, reps: "10-12", rest: "60s", note: "Upper chest — key for that full chest look", howTo: "Sit on an incline bench (30-45°). Hold dumbbells at chest level, press up until arms are straight, then lower slowly. The incline targets the upper chest which most beginners neglect.", search: "incline dumbbell press form" },
+      { name: "Flat Bench Press (Machine/Smith)", sets: 3, reps: "10-12", rest: "60s", note: "Overall chest mass builder", howTo: "Lie flat on bench. Grip bar slightly wider than shoulders, lower to mid-chest, push back up. Use the machine/Smith for safety as a beginner.", search: "smith machine bench press form" },
+      { name: "Cable Chest Fly", sets: 3, reps: "12-15", rest: "45s", note: "Sculpts the inner chest line", howTo: "Stand between two cable machines set at chest height. With slightly bent arms, bring both handles together in front of your chest. Squeeze hard at the center.", search: "cable chest fly" },
+      { name: "Chest Dips (Assisted)", sets: 3, reps: "8-10", rest: "60s", note: "Lower chest + tricep combo", howTo: "Use the assisted dip machine. Grip handles, lean forward slightly for chest, lower until arms are at 90°, then push up.", search: "assisted chest dip" },
+      { name: "Tricep Rope Pushdowns", sets: 3, reps: "12-15", rest: "45s", note: "Builds the horseshoe tricep shape", howTo: "At a cable machine, grab the rope. Keep elbows pinned at your sides and push down, spreading the rope apart at the bottom for a hard squeeze.", search: "tricep rope pushdown" },
+      { name: "Overhead Tricep Extension", sets: 3, reps: "12", rest: "45s", note: "Hits the long head for bigger arms", howTo: "Hold one dumbbell with both hands above your head. Lower behind your head by bending elbows, then extend back up. Targets the biggest part of the tricep.", search: "overhead tricep extension dumbbell" },
+      { name: "Plank Hold", sets: 3, reps: "40-60s", rest: "30s", note: "Core foundation for visible abs", howTo: "Forearm plank — elbows under shoulders, body straight from head to heels. Squeeze abs and glutes. Don't let hips sag or pike up.", search: "forearm plank hold form" },
+    ],
+  },
+  {
+    day: "Tuesday", label: "Back & Biceps", focus: "Width, Thickness & Arm Size",
+    emoji: "💪", color: "#4ECDC4", tag: "Back+Bi",
+    aesthetic: "Builds the V-taper — wide lats make your waist look smaller",
+    exercises: [
+      { name: "Assisted Pull-Ups", sets: 4, reps: "8-10", rest: "60s", note: "THE #1 exercise for a wide back", howTo: "Use the assisted pull-up machine. Grab bar with palms away, pull chin above bar, lower slowly. Builds lat width for the V-taper.", search: "assisted pull up machine" },
+      { name: "Lat Pulldown (Wide Grip)", sets: 3, reps: "10-12", rest: "60s", note: "More width — pull to upper chest", howTo: "Sit at lat pulldown, grab bar wide. Pull to upper chest squeezing shoulder blades. Think about pulling with elbows, not hands.", search: "wide grip lat pulldown" },
+      { name: "Seated Cable Row", sets: 3, reps: "10-12", rest: "60s", note: "Builds back thickness", howTo: "Sit at cable row with feet on platform. Pull handle to stomach, back straight, squeeze shoulder blades together.", search: "seated cable row" },
+      { name: "Dumbbell Row", sets: 3, reps: "10-12", rest: "60s", note: "Fixes left-right imbalances", howTo: "One knee and hand on bench, dumbbell in other hand. Pull up to hip like starting a lawnmower. Squeeze at top.", search: "single arm dumbbell row" },
+      { name: "EZ Bar Curls", sets: 3, reps: "10-12", rest: "45s", note: "Primary bicep mass builder", howTo: "Hold EZ bar on inner grips. Curl to chest without swinging, lower slowly — the slow negative builds more muscle.", search: "ez bar curl form" },
+      { name: "Incline Dumbbell Curls", sets: 3, reps: "10-12", rest: "45s", note: "Stretches bicep for a bigger peak", howTo: "Sit on incline bench, arms hanging with dumbbells. Curl up keeping upper arms still. The incline gives a deeper stretch.", search: "incline dumbbell curl" },
+      { name: "Hammer Curls", sets: 3, reps: "10-12", rest: "45s", note: "Forearms + brachialis for arm thickness", howTo: "Dumbbells with palms facing each other. Curl without swinging. Targets the outer arm making arms look thicker from the front.", search: "hammer curl dumbbell" },
+    ],
+  },
+  {
+    day: "Wednesday", label: "Shoulders & Abs", focus: "Capped Delts & Core Definition",
+    emoji: "🎯", color: "#F59E0B", tag: "Shoulders+Abs",
+    aesthetic: "Broad, round shoulders are the #1 aesthetic muscle — they make everything look better",
+    exercises: [
+      { name: "Dumbbell Shoulder Press", sets: 4, reps: "10-12", rest: "60s", note: "Overall shoulder mass", howTo: "Sit upright, dumbbells at shoulder height, palms forward. Press overhead, lower slowly. Don't arch your back.", search: "dumbbell shoulder press seated" },
+      { name: "Lateral Raises", sets: 4, reps: "12-15", rest: "45s", note: "THE key exercise for wider shoulders", howTo: "Light dumbbells at sides. Raise arms out to shoulder level, pause, lower slowly. Light weight + high reps = best results.", search: "lateral raise form" },
+      { name: "Face Pulls", sets: 3, reps: "15", rest: "45s", note: "Rear delts + posture = 3D shoulder look", howTo: "Cable at face height with rope. Pull toward face, separate rope ends. Elbows high and wide. Hits rear delts and improves posture.", search: "face pull cable rope" },
+      { name: "Front Raises", sets: 3, reps: "12", rest: "45s", note: "Front delt definition", howTo: "Dumbbells at thighs. Raise one arm straight to shoulder height, lower, alternate. No momentum.", search: "dumbbell front raise" },
+      { name: "Cable Lateral Raises", sets: 3, reps: "12-15", rest: "45s", note: "Constant tension = better shoulder cap", howTo: "Stand next to low cable, grab handle with far hand. Raise arm to shoulder height. Cable keeps tension throughout entire movement.", search: "cable lateral raise" },
+      { name: "Hanging Leg Raises", sets: 3, reps: "10-12", rest: "45s", note: "Lower abs — key for the V-line", howTo: "Hang from pull-up bar. Keep legs straight (or bend knees if too hard), raise to 90°, lower slowly. Carves the lower ab V-line.", search: "hanging leg raises" },
+      { name: "Cable Crunches", sets: 3, reps: "15", rest: "30s", note: "Weighted abs = visible abs faster", howTo: "Kneel at cable machine, rope behind head. Crunch down curling torso, squeeze abs hard. Adding weight makes abs pop sooner.", search: "cable crunch abs" },
+      { name: "Russian Twists", sets: 3, reps: "15 each", rest: "30s", note: "Obliques — carves the waistline", howTo: "Sit on floor, knees bent, lean back slightly. Hold weight at chest, rotate side to side tapping ground beside each hip.", search: "russian twists exercise" },
+    ],
+  },
+  {
+    day: "Thursday", label: "Legs", focus: "Quads, Hamstrings, Glutes & Calves",
+    emoji: "🦵", color: "#FF6B6B", tag: "Legs",
+    aesthetic: "Proportional legs prevent the 'chicken legs' look — balance is everything",
+    exercises: [
+      { name: "Goblet Squats", sets: 4, reps: "12", rest: "60s", note: "Overall leg foundation", howTo: "Hold dumbbell at chest with both hands. Squat like sitting in a chair, chest up, stand back up.", search: "goblet squat dumbbell" },
+      { name: "Leg Press", sets: 3, reps: "12", rest: "60s", note: "Quad mass without back strain", howTo: "Sit in leg press, feet shoulder-width on platform. Push up extending legs, don't fully lock knees.", search: "leg press machine form" },
+      { name: "Romanian Deadlift (Dumbbell)", sets: 3, reps: "10-12", rest: "60s", note: "Hamstrings + glutes", howTo: "Dumbbells in front of thighs. Hinge at hips, slide weights down legs until hamstring stretch. Stand up squeezing glutes.", search: "dumbbell romanian deadlift" },
+      { name: "Leg Extension (Machine)", sets: 3, reps: "12-15", rest: "45s", note: "Quad definition — the teardrop", howTo: "Sit in machine, pad on shins. Extend legs straight, squeeze quads hard at top, lower slowly.", search: "leg extension machine" },
+      { name: "Leg Curls (Machine)", sets: 3, reps: "12", rest: "45s", note: "Hamstring balance", howTo: "Lie face down, pad behind ankles. Curl heels toward butt, squeeze at top, lower slowly.", search: "lying leg curl machine" },
+      { name: "Standing Calf Raises", sets: 4, reps: "15-20", rest: "30s", note: "Calves need high volume", howTo: "Stand on step or machine. Rise on toes as high as possible, hold 1 second, lower until deep stretch.", search: "standing calf raise" },
+      { name: "Bicycle Crunches", sets: 3, reps: "15 each", rest: "30s", note: "Abs every other session", howTo: "Lie on back, hands behind head. Knee to opposite elbow, alternate slowly like pedaling a bike.", search: "bicycle crunches exercise" },
+    ],
+  },
+  {
+    day: "Friday", label: "Chest & Arms", focus: "Chest Detail + Bicep & Tricep Volume",
+    emoji: "⚡", color: "#A855F7", tag: "Chest+Arms",
+    aesthetic: "Extra arm volume — this is what makes arms fill out your sleeves",
+    exercises: [
+      { name: "Dumbbell Flat Bench Press", sets: 3, reps: "10-12", rest: "60s", note: "Chest thickness", howTo: "Lie flat, dumbbells above chest. Lower to sides with a big stretch, press up. Dumbbells allow deeper stretch than barbell.", search: "dumbbell flat bench press" },
+      { name: "Incline Cable Fly", sets: 3, reps: "12-15", rest: "45s", note: "Upper chest separation", howTo: "Cables at lowest. Lie on incline bench, bring handles together above upper chest in a hugging motion. Squeeze at top.", search: "incline cable fly" },
+      { name: "Bench Dips", sets: 3, reps: "10-12", rest: "45s", note: "Tricep finisher", howTo: "Hands on bench behind you, legs extended. Lower by bending elbows to 90°, push back up. Keep back close to bench.", search: "bench dips triceps" },
+      { name: "EZ Bar Curls", sets: 3, reps: "10-12", rest: "45s", note: "Bicep peak", howTo: "EZ bar on inner grips. Curl to chest without swinging. Lower slowly — the eccentric phase is where growth happens.", search: "ez bar curl" },
+      { name: "Tricep Rope Pushdowns", sets: 3, reps: "12-15", rest: "45s", note: "Horseshoe definition", howTo: "Cable machine, rope attachment. Elbows pinned, push down and spread rope at bottom. Squeeze 1 second.", search: "tricep rope pushdown" },
+      { name: "Cable Hammer Curls (Rope)", sets: 3, reps: "12", rest: "45s", note: "Arm thickness from the front", howTo: "Rope on low cable, palms facing each other. Curl to chest, squeeze, lower slowly. Builds the outer arm.", search: "cable rope hammer curl" },
+      { name: "Concentration Curls", sets: 3, reps: "10 each", rest: "45s", note: "Bicep peak isolation — the Arnold classic", howTo: "Sit on bench, elbow on inner thigh. Curl dumbbell with just your bicep, squeeze at top. No body English.", search: "concentration curl dumbbell" },
+      { name: "Leg Raises (Lying)", sets: 3, reps: "12", rest: "30s", note: "Lower ab V-line work", howTo: "Lie flat, hands under hips. Raise straight legs to 90°, lower slowly without touching floor.", search: "lying leg raises" },
+    ],
+  },
+  {
+    day: "Saturday", label: "Back & Shoulders", focus: "V-Taper Width + Shoulder Caps",
+    emoji: "🔋", color: "#10B981", tag: "Back+Shoulders",
+    aesthetic: "Double dose of the two muscles that define an aesthetic physique",
+    exercises: [
+      { name: "Assisted Pull-Ups (Wide Grip)", sets: 4, reps: "8-10", rest: "60s", note: "Maximum lat width", howTo: "Assisted machine, grip wide. Pull chin over bar, lower slowly. Wide grip = wider back = better V-taper.", search: "wide grip assisted pull up" },
+      { name: "Straight Arm Lat Pulldown", sets: 3, reps: "12", rest: "45s", note: "Isolates lats for that sweep", howTo: "Cable machine, bar at top. Straight arms, pull bar to thighs in an arc. Feel lats stretch and contract.", search: "straight arm lat pulldown" },
+      { name: "Reverse Fly (Machine)", sets: 3, reps: "12-15", rest: "45s", note: "Rear delts — 3D shoulder look", howTo: "Sit at reverse fly machine. Open arms wide like reverse tree hug. Squeeze rear delts and upper back.", search: "reverse fly machine" },
+      { name: "Arnold Press", sets: 3, reps: "10-12", rest: "60s", note: "Hits all 3 shoulder heads in one move", howTo: "Dumbbells in front of face, palms facing you. Press up while rotating palms forward. Reverse down. Named after Schwarzenegger.", search: "arnold press dumbbell" },
+      { name: "Lateral Raises (Drop Set)", sets: 3, reps: "12, 10, 8", rest: "60s", note: "Heavy → lighter without rest between drops", howTo: "12 reps heavy, immediately grab lighter for 10, then lighter for 8. No rest between drops. Shoulders will burn — that's the point.", search: "lateral raise drop set" },
+      { name: "Face Pulls", sets: 3, reps: "15", rest: "45s", note: "Posture + rear delt roundness", howTo: "Cable at face height with rope. Pull toward face, separate rope ends, squeeze upper back. Elbows high and wide.", search: "face pull cable" },
+      { name: "Cable Crunches", sets: 3, reps: "15", rest: "30s", note: "Weighted abs for the six-pack", howTo: "Kneel at cable, rope behind head. Crunch down curling torso, squeeze abs hard.", search: "cable crunch abs" },
+      { name: "Dead Hang", sets: 3, reps: "25-30s", rest: "30s", note: "Decompresses spine + grip", howTo: "Hang from pull-up bar, straight arms. Relax shoulders, breathe. Stretches lats and builds grip.", search: "dead hang pull up bar" },
+    ],
+  },
+  {
+    day: "Sunday", label: "Active Recovery", focus: "Stretch, Recover & Grow",
+    emoji: "🧘", color: "#6366F1", tag: "Recovery",
+    aesthetic: "Muscles grow during rest — recovery IS part of the aesthetic process",
+    exercises: [
+      { name: "Foam Rolling (Full Body)", sets: 1, reps: "10 min", rest: "—", note: "Focus on sore areas", howTo: "Foam roller on ground. Roll muscles over it — quads, hamstrings, back, calves. Pause on sore spots 20-30 seconds.", search: "" },
+      { name: "Dynamic Stretching", sets: 1, reps: "10 min", rest: "—", note: "Leg swings, arm circles", howTo: "Moving stretches: leg swings, arm circles, hip circles, walking high knees, butt kicks.", search: "" },
+      { name: "Light Walk or Cycle", sets: 1, reps: "15 min", rest: "—", note: "Easy pace, blood flow", howTo: "Relaxed walk or easy bike ride. Blood flow for recovery, not intensity.", search: "" },
+      { name: "Yoga / Static Stretching", sets: 1, reps: "10 min", rest: "—", note: "Hold each stretch 30s", howTo: "Hold stretches: touch toes, quad stretch, chest stretch, child's pose, pigeon pose. Breathe deeply.", search: "" },
+    ],
+  },
+];
+
+const TIPS = [
+  { text: "🎾 2 hrs of tennis & pickleball daily = amazing cardio. You don't need extra cardio. The gym builds the muscle underneath.", color: "#FF6B35" },
+  { text: "📐 The V-taper illusion: Wide shoulders + wide back + small waist = aesthetic. That's why we hit shoulders and back twice a week.", color: "#4ECDC4" },
+  { text: "📈 Progressive overload: Add 1 rep or 1 kg each week. Small gains compound into big results over months.", color: "#F59E0B" },
+  { text: "🥩 Protein is non-negotiable: ~100g/day (1.6g per kg). Chicken, eggs, Greek yogurt, paneer, dal, whey.", color: "#FF6B6B" },
+  { text: "💤 Sleep 8-9 hours. Growth hormone peaks during deep sleep. Skipping sleep = skipping gains.", color: "#A855F7" },
+  { text: "⏳ Aesthetics take time. Trust the process — real changes show in 8-12 weeks of consistency.", color: "#10B981" },
+  { text: "🪞 Take progress photos monthly (same lighting, same pose). The mirror lies daily but photos don't.", color: "#6366F1" },
+];
+
+const FREQ = [
+  { muscle: "Shoulders", freq: "3x", note: "Mon + Wed + Sat", w: "100%", c: "#F59E0B" },
+  { muscle: "Back (Lats)", freq: "2x", note: "Tue + Sat", w: "70%", c: "#4ECDC4" },
+  { muscle: "Chest", freq: "2x", note: "Mon + Fri", w: "70%", c: "#FF6B35" },
+  { muscle: "Arms", freq: "3x", note: "Mon + Tue + Fri", w: "100%", c: "#A855F7" },
+  { muscle: "Abs / Core", freq: "4x", note: "Mon + Wed + Thu + Fri", w: "100%", c: "#FF6B6B" },
+  { muscle: "Legs", freq: "1x", note: "Thu (+ tennis)", w: "40%", c: "#10B981" },
+];
+
+let state = {
+  selectedDay: 0,
+  completed: JSON.parse(localStorage.getItem('workout_completed') || '{}'),
+  expanded: null,
+  showTips: false,
+};
+
+function save() { localStorage.setItem('workout_completed', JSON.stringify(state.completed)); }
+
+function render() {
+  const d = DAYS[state.selectedDay];
+  const completedCount = d.exercises.filter((_, i) => state.completed[`${state.selectedDay}-${i}`]).length;
+  const progress = (completedCount / d.exercises.length) * 100;
+
+  document.getElementById('ambient1').style.background = `radial-gradient(circle, ${d.color}15, transparent 70%)`;
+  document.getElementById('ambient2').style.background = `radial-gradient(circle, ${d.color}08, transparent 70%)`;
+
+  let html = `
+    <div style="margin-bottom:24px">
+      <p class="label" style="color:${d.color}">Aesthetics Program</p>
+      <h1>Build Your Best Physique</h1>
+      <p class="subtitle">62.75 kg · V-Taper · Lean Muscle · Defined Abs · 45-50 min</p>
+    </div>
+
+    <div class="split-bar">
+      ${DAYS.map((dd, i) => `<span class="split-tag" style="color:${dd.color};background:${dd.color}12">${dd.tag}</span>`).join('')}
+    </div>
+
+    <div class="day-scroll">
+      ${DAYS.map((dd, i) => `
+        <button class="day-btn ${state.selectedDay === i ? 'active' : ''}" onclick="selectDay(${i})" style="${state.selectedDay === i ? `border-color:${dd.color};background:${dd.color}12;color:${dd.color}` : ''}">
+          <span class="emoji">${dd.emoji}</span>
+          <span>${dd.day.slice(0, 3)}</span>
+        </button>
+      `).join('')}
+    </div>
+
+    <div class="day-card" style="border-color:${d.color}25">
+      <div class="day-header">
+        <div>
+          <div class="day-tag" style="background:${d.color}20;color:${d.color}">${d.label}</div>
+          <div class="day-title">${d.day}</div>
+          <div class="day-focus">${d.focus}</div>
+        </div>
+        <div>
+          <div class="day-count" style="color:${d.color}">${completedCount}/${d.exercises.length}</div>
+          <div class="day-count-label">done</div>
+        </div>
+      </div>
+
+      <div class="aesthetic-note" style="background:${d.color}08;border:1px solid ${d.color}15;color:${d.color}">
+        ✨ ${d.aesthetic}
+      </div>
+
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:${progress}%;background:linear-gradient(90deg,${d.color},${d.color}AA)"></div>
+      </div>
+
+      <div class="exercise-list">
+        ${d.exercises.map((ex, i) => {
+          const key = `${state.selectedDay}-${i}`;
+          const isDone = !!state.completed[key];
+          const isExp = state.expanded === key;
+          return `
+            <div class="exercise ${isDone ? 'done' : ''} ${isExp ? 'expanded' : ''}" style="${isExp ? `border-color:${d.color}50` : isDone ? `border-color:${d.color}30;background:${d.color}10` : ''}">
+              <div class="exercise-row" onclick="toggleDone(${i})">
+                <div class="checkbox ${isDone ? 'checked' : ''}" style="${isDone ? `border-color:${d.color};background:${d.color}` : ''}">
+                  ${isDone ? '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
+                </div>
+                <div class="exercise-info">
+                  <div class="exercise-name">${ex.name}</div>
+                  <div class="exercise-meta">
+                    <span><span class="val" style="color:${d.color}">${ex.sets}</span> sets</span>
+                    <span><span class="val" style="color:${d.color}">${ex.reps}</span> reps</span>
+                    <span>Rest: ${ex.rest}</span>
+                  </div>
+                  <div class="exercise-tip">💡 ${ex.note}</div>
+                </div>
+                <button class="how-btn ${isExp ? 'active' : ''}" style="${isExp ? `border-color:${d.color};background:${d.color}20;color:${d.color}` : ''}" onclick="event.stopPropagation();toggleExpand('${key}')">${isExp ? 'Hide' : 'How?'}</button>
+              </div>
+              ${isExp ? `
+                <div class="expand-panel">
+                  <div class="expand-inner" style="border-color:${d.color}20">
+                    <p class="expand-label" style="color:${d.color}">How to do it</p>
+                    <p class="expand-text">${ex.howTo}</p>
+                    ${ex.search ? `
+                      <button class="yt-btn" style="border:1px solid ${d.color}40;background:linear-gradient(135deg,${d.color}15,${d.color}08);color:${d.color}" onclick="event.stopPropagation();window.open('https://www.youtube.com/results?search_query='+encodeURIComponent('${ex.search} form tutorial'),'_blank')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="${d.color}"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                        Watch Form Tutorial
+                      </button>
+                    ` : ''}
+                  </div>
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="freq-card">
+      <div class="freq-title">Weekly Muscle Frequency</div>
+      ${FREQ.map(f => `
+        <div class="freq-row">
+          <div class="freq-header">
+            <span class="freq-muscle">${f.muscle}</span>
+            <span class="freq-detail">${f.freq} — ${f.note}</span>
+          </div>
+          <div class="freq-bar"><div class="freq-fill" style="width:${f.w};background:${f.c}"></div></div>
+        </div>
+      `).join('')}
+    </div>
+
+    <button class="tips-btn" onclick="toggleTips()">
+      <span>💡 Aesthetics Tips</span>
+      <span class="tips-arrow ${state.showTips ? 'open' : ''}">▾</span>
+    </button>
+
+    <div class="tips-panel ${state.showTips ? 'open' : ''}">
+      ${TIPS.map(t => `<div class="tip" style="border-left-color:${t.color}">${t.text}</div>`).join('')}
+    </div>
+
+    <div class="footer">
+      Chest+Tri · Back+Bi · Shoulders+Abs · Legs · Chest+Arms · Back+Shoulders · Rest
+      <br><span class="footer-sub">Tap to check off · "How?" for guides · 🎥 for video demos</span>
+    </div>
+  `;
+
+  document.getElementById('app').innerHTML = html;
+}
+
+function selectDay(i) { state.selectedDay = i; state.expanded = null; render(); }
+function toggleDone(i) {
+  const key = `${state.selectedDay}-${i}`;
+  state.completed[key] = !state.completed[key];
+  if (!state.completed[key]) delete state.completed[key];
+  save(); render();
+}
+function toggleExpand(key) { state.expanded = state.expanded === key ? null : key; render(); }
+function toggleTips() { state.showTips = !state.showTips; render(); }
+
+render();
+</script>
+</body>
+</html>
